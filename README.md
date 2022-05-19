@@ -16,4 +16,4 @@ A detailed structure and each module of the workflow is presented below in the d
 
 ## Pipeline summary
 
-![aiv_seeker_workflow](docs/images/aiv_seeker_workflow.jpg)
+![aiv_seeker_workflow](docs/aiv_seeker_workflow.jpg)
