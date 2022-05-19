@@ -13,3 +13,7 @@ The application of next generation sequencing (NGS) in infectious disease survei
 The workfow was originally built in Perl, but now we decided to switch to [Nextflow](https://www.nextflow.io)-[DSL2](https://www.nextflow.io/docs/latest/dsl2.html) as workflow engine starting from version 0.3. Nextflow makes the pipeline more scalable and reproducible. It's easy to run tasks across multiple compute infrastructures, and also it can support `conda`/`Docker`/`Singularity` containers making installation trivial and results highly reproducible. 
 
 A detailed structure and each module of the workflow is presented below in the dataflow diagram.
+
+## Pipeline summary
+
+![aiv_seeker_workflow](docs/images/aiv_seeker_workflow.jpg)
