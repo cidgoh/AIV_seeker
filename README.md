@@ -28,6 +28,20 @@ A detailed structure and each module of the workflow is presented below in the d
 ![aiv_seeker_workflow](docs/aiv_seeker_workflow.jpg)
 
 
+## Quick Start
+
+1. Install [`nextflow`](https://nf-co.re/usage/installation) (`>=20.04.0`)
+
+2. Install [`Docker`](https://docs.docker.com/engine/installation/), [`Singularity`](https://www.sylabs.io/guides/3.0/user-guide/) or [`Conda`](https://conda.io/miniconda.html)
+
+3. Download the pipeline and test it on a demo dataset with a single command:
+
+ ```bash
+    nextflow run cidgoh/AIV_seeker -profile singualrity --input demo_data/samplesheet.csv
+ ```
+
+3. Download the pipeline and test it on a minimal dataset with a single command:
+
 
 ## Support
 
