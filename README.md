@@ -27,4 +27,4 @@ For further information or help, don't hesitate to get in touch at
 
 ## Citations
 An extensive list of references for the tools used by the workflow 
-can be found in the [CITATIONS.md](https://github.com/cidgoh/AIV_seeker/blob/master/docs/CITATIONS.md) file.
+can be found in the [CITATIONS.md](https://github.com/cidgoh/AIV_seeker/blob/dev_nf-aivseeker/docs/CITATIONS.md) file.
