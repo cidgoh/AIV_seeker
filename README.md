@@ -17,3 +17,14 @@ A detailed structure and each module of the workflow is presented below in the d
 ## Pipeline summary
 
 ![aiv_seeker_workflow](docs/aiv_seeker_workflow.jpg)
+
+
+
+## Support
+
+For further information or help, don't hesitate to get in touch at 
+[jun_duan@sfu.ca](mailto:jun_duan@sfu.ca) or [wwshiao](mailto:wwshiao@sfu.ca)
+
+## Citations
+An extensive list of references for the tools used by the workflow 
+can be found in the [CITATIONS.md](https://github.com/cidgoh/AIV_seeker/blob/master/docs/CITATIONS.md) file.
