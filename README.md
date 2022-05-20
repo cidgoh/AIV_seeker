@@ -27,8 +27,9 @@ A detailed structure and each module of the workflow is presented below in the d
 
 ![aiv_seeker_workflow](docs/aiv_seeker_workflow.jpg)
 
-The pipeline currently takes reads from metagenomics sequencing as the starting point. Then it will do a QC check. It performs quality trims the reads and adapters with [fastp](https://github.com/OpenGene/fastp), and performs basic QC with [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/) and summerize the QC QC results with [MultiQC](https://multiqc.info/). You can also get a quick taxonomic report with [Krakne2](https://github.com/DerrickWood/kraken2) or [Centrifugre](https://ccb.jhu.edu/software/centrifuge) by setting `skip_kraken2=false` or `--skip_centrifuge=false`.
+The pipeline currently takes reads from metagenomics sequencing as the starting point, then does a QC check. It performs quality trims the reads and adapters with [fastp](https://github.com/OpenGene/fastp), and performs basic QC with [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/) and summerize the QC QC results with [MultiQC](https://multiqc.info/). You can also get a quick taxonomic report with [Krakne2](https://github.com/DerrickWood/kraken2) or [Centrifugre](https://ccb.jhu.edu/software/centrifuge) by setting `skip_kraken2=false` or `--skip_centrifuge=false`.
 
+The pipeline then preprocesses the sequences by merging pair-end reads with [Vsearch: mergepairs](https://github.com/torognes/vsearch), perform quality filtering with [Vsearch: fasta_filter](https://github.com/torognes/vsearch) and dereplication with [Vsearch: derep_fulllength](https://github.com/torognes/vsearch).
 
 Furthermore, the pipeline creates reports in the results directory specified, summarizing some of the subtyping results and sequences.
 
