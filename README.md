@@ -40,8 +40,13 @@ A detailed structure and each module of the workflow is presented below in the d
     nextflow run cidgoh/AIV_seeker -profile singualrity --input demo_data/samplesheet.csv
  ```
 
-3. Download the pipeline and test it on a minimal dataset with a single command:
+4. Start running your own analysis!
 
+5. Once your run has completed successfully, clean up the intermediate files.
+
+```bash
+    nextflow clean -f -k
+ ```
 
 ## Support
 
