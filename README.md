@@ -31,7 +31,11 @@ The pipeline currently takes reads from metagenomics sequencing as the starting 
 
 The pipeline then preprocesses the sequences by merging pair-end reads with [Vsearch: mergepairs](https://github.com/torognes/vsearch), performing quality filtering with [Vsearch: fasta_filter](https://github.com/torognes/vsearch) and dereplication with [Vsearch: derep_fulllength](https://github.com/torognes/vsearch).
 
-After preprocessing, it performs two rounds of alignments to balance running time and accuracy. The first round is done with [Diamond](https://github.com/bbuchfink/diamond), then the second run is done with [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download). 
+After preprocessing, it performs two rounds of alignments to balance running time and accuracy. The first round is done with [Diamond](https://github.com/bbuchfink/diamond), then the second round is done with [BLAST](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastDocs&DOC_TYPE=Download). 
+
+Then the alignment results are parsed. Some custom scripts are used to caculate BSR score and assign subtypes based on a custom database and metadata, which was built based on the data download from [IRD](https://fludb.org).
+
+An optional step can be done before subtyping. It uses [Vsearch](https://github.com/torognes/vsearch) to group reads and then uses custom scripts to generate OTU tables and detect potential reads resulted from bleeding, which is a known issue from Illumina platform. 
 
 Furthermore, the pipeline creates reports in the results directory specified, summarizing some of the subtyping results and sequences.
 
