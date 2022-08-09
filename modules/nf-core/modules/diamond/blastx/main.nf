@@ -11,12 +11,10 @@ process DIAMOND_BLASTX {
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) }
 
-    // Dimaond is limited to v2.0.9 because there is not a
-    // singularity version higher than this at the current time.
-    conda (params.enable_conda ? "bioconda::diamond=2.0.9" : null)
+    conda (params.enable_conda ? "bioconda::diamond=2.0.15" : null)
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/diamond:2.0.9--hdcc8f71_0' :
-        'quay.io/biocontainers/diamond:2.0.9--hdcc8f71_0' }"
+        'https://depot.galaxyproject.org/singularity/diamond:2.0.15--hb97b32f_1' :
+        'quay.io/biocontainers/diamond:2.0.15--hb97b32f_1' }"
 
     input:
     tuple val(meta), path(fasta)
@@ -30,8 +28,8 @@ process DIAMOND_BLASTX {
     task.ext.when == null || task.ext.when
 
     script:
-    def args = task.ext.args ?: ''
-    def prefix = task.ext.prefix ?: "${meta.id}"
+    def args = options.args ?: ''
+    def prefix = options.prefix ?: "${meta.id}"
     """
     DB=`find -L ./ -name "*.dmnd" | sed 's/.dmnd//'`
 

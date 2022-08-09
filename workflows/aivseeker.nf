@@ -2,13 +2,11 @@
 include {printHelp              } from '../modules/local/help'
 include {header                 } from '../modules/local/header'
 
-
 if (params.help){
     log.info header()
     printHelp()
     exit 0
 }
-
 
 /*
 ========================================================================================
@@ -17,18 +15,10 @@ if (params.help){
 */
 def modules = params.modules.clone()
 
-params.diamond_pep_db = "$baseDir/assets/diamond_db/avian_pep_db.fas"
-params.aiv_gene_db = "$baseDir/assets/blast_db/avian_flu_gene.0.99.fas"
-params.aiv_gene_metadata = "$baseDir/assets/blast_db/avivan_flu_gene_metadata.csv"
-params.chimera_cutoff = 0.75
-
-
-
 include { INPUT_CHECK        }    from '../modules/local/input_check'               addParams( options: [:] )
 include { GET_SOFTWARE_VERSIONS } from '../modules/local/get_software_versions'     addParams( options: [publish_files: ['tsv':'']])
 
 /*
-
 
 ========================================================================================
     IMPORT NF-CORE MODULES/SUBWORKFLOWS
@@ -36,34 +26,20 @@ include { GET_SOFTWARE_VERSIONS } from '../modules/local/get_software_versions' 
 */
 if (params.input)      { ch_input      = file(params.input)      } else { exit 1, 'Input samplesheet file not specified!' }
 //
-// MODULE: Installed directly from nf-core/modules
-//
-include { CAT_FASTQ                     } from '../modules/nf-core/modules/cat/fastq/main'                     addParams( options: modules['illumina_cat_fastq']                     )
-include { FASTQC                        } from '../modules/nf-core/modules/fastqc/main'                        addParams( options: modules['illumina_cutadapt_fastqc']               )
 
-
-
-//
-// SUBWORKFLOW: Consisting entirely of nf-core/modules
-//
+def multiqc_report    = []
+def pass_mapped_reads = [:]
+def fail_mapped_reads = [:]
 def fastp_options = modules['illumina_fastp']
 def diamond_blastx_options = modules['diamond_blastx']
-
-if (params.save_trimmed_fail) { fastp_options.publish_files.put('fail.fastq.gz','seq/fail') }
-if (params.save_trimmed_good) { fastp_options.publish_files.put('trim.fastq.gz','seq/trim') }
-if (params.save_merged) { fastp_options.publish_files.put('merged.fastq.gz','seq/trim') }
-
 def multiqc_options   = modules['illumina_multiqc']
-multiqc_options.args += params.multiqc_title ? Utils.joinModuleArgs(["--title \"$params.multiqc_title\""]) : ''
-
 def vsearch_vsearch_options = modules['vsearch_vsearch_options']
 def debleeding_options = modules['debleeding_options']
 
-ch_multiqc_config = file("$baseDir/assets/multiqc_config.yaml", checkIfExists: true)
-ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config, checkIfExists: true) : Channel.empty()
+// MODULES
 
-
-
+include { CAT_FASTQ                     } from '../modules/nf-core/modules/cat/fastq/main'                     addParams( options: modules['illumina_cat_fastq']                     )
+include { FASTQC                        } from '../modules/nf-core/modules/fastqc/main'                        addParams( options: modules['illumina_cutadapt_fastqc']               )
 include { FASTQC_FASTP                                        } from '../subworkflows/local/fastqc_fastp' addParams( fastqc_raw_options: modules['illumina_fastqc_raw'], fastqc_trim_options: modules['illumina_fastqc_trim'], fastp_options: fastp_options )
 include { MULTIQC                                             } from '../modules/local/multiqc'                     addParams( options: multiqc_options                       )
 include { FILTER                                        } from '../modules/local/vsearch/filter' addParams( options: modules['vsearch_filter'])
@@ -85,10 +61,6 @@ include { SUM_TABLE as SUM_TABLE_DEBLED   } from '../modules/local/sum_table' ad
 include { SUM_HEATMAP as SUM_HEATMAP_DEBLED   } from '../modules/local/sum_heatmap' addParams( options: modules['sum_heatmap_debled'])
 
 
-
-
-
-
 include { DIAMOND_MAKEDB                                             } from '../modules/nf-core/modules/diamond/makedb/main'
 include { DIAMOND_BLASTX                                             } from '../modules/nf-core/modules/diamond/blastx/main' addParams( options: diamond_blastx_options)
 include { FQ_TO_FA                                        } from '../modules/local/fq_to_fa' 
@@ -97,8 +69,6 @@ include { EXTRACTSEQ  as  EXTRACTSEQ_WITHOUT_CHIMERAS                           
 
 
 include { DEBLEEDING } from '../subworkflows/local/debleeding' addParams(vsearch_vsearch_options: vsearch_vsearch_options, debleeding_options: debleeding_options)
-
-
 
 include { KRAKEN2_DB_PREPARE                                  } from '../modules/local/kraken2/kraken2_db_prepare'
 include { KRAKEN2                                             } from '../modules/local/kraken2/kraken2'                     addParams( options: modules['kraken2']                    )
@@ -125,6 +95,20 @@ if(params.kraken2_db){
     ch_kraken2_db_file = Channel.empty()
 }
 
+
+
+
+if (params.save_trimmed_fail) { fastp_options.publish_files.put('fail.fastq.gz','seq/fail') }
+if (params.save_trimmed_good) { fastp_options.publish_files.put('trim.fastq.gz','seq/trim') }
+if (params.save_merged) { fastp_options.publish_files.put('merged.fastq.gz','seq/trim') }
+
+multiqc_options.args += params.multiqc_title ? Utils.joinModuleArgs(["--title \"$params.multiqc_title\""]) : ''
+
+
+ch_multiqc_config = file("$baseDir/assets/multiqc_config.yaml", checkIfExists: true)
+ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config, checkIfExists: true) : Channel.empty()
+
+
 /*
 ========================================================================================
     RUN MAIN WORKFLOW
@@ -132,9 +116,7 @@ if(params.kraken2_db){
 */
 
 // Info required for completion email and summary
-def multiqc_report    = []
-def pass_mapped_reads = [:]
-def fail_mapped_reads = [:]
+
 
 workflow AIVSEEKER {
     ch_versions = Channel.empty()
@@ -203,12 +185,6 @@ workflow AIVSEEKER {
     ch_kraken2_fastq    =         FASTQC_FASTP.out.trim_reads_paired
     ch_versions = ch_versions.mix(FASTQC_FASTP.out.fastqc_version.first().ifEmpty(null))
     ch_versions = ch_versions.mix(FASTQC_FASTP.out.fastp_version.first().ifEmpty(null))
-
-    /*
-    ================================================================================
-            Quality check and filtering 
-    ================================================================================
-    */
     ch_paired_fastq = Channel.empty()
     ch_unpaired_fastq = Channel.empty()
     ch_combined_fastq  = Channel.empty()
@@ -217,6 +193,11 @@ workflow AIVSEEKER {
     ch_paired_fastq = FASTQC_FASTP.out.trim_reads_paired
     ch_unpaired_fastq = FASTQC_FASTP.out.trim_reads_unpaired
 
+    /*
+    ================================================================================
+           Optiional: Taxonomic analysis
+    ================================================================================
+    */
 
     if(!params.skip_krona) {
         KRONA_DB ()
@@ -269,61 +250,11 @@ workflow AIVSEEKER {
         
     }
 
-    
-
-   /*
-    if (params.centrifuge_db && params.kraken2_db && !params.skip_kraken2 && !params.skip_centrifuge && !params.skip_krona) {
-        
-        CENTRIFUGE.out.results_for_krona.mix(KRAKEN2.out.results_for_krona)
-            .map { classifier, meta, report ->
-                def meta_new = meta.clone()
-                meta_new.classifier  = classifier
-                [ meta_new, report ]
-            }
-            .set { ch_tax_classifications }
-        KRONA (
-            ch_tax_classifications,
-            KRONA_DB.out.db.collect()
-        )
-     
-    }
-    
-    
-    if ( params.centrifuge_db && params.skip_kraken2 && !params.skip_centrifuge && !params.skip_krona) {
-
-        CENTRIFUGE.out.results_for_krona
-            .map { classifier, meta, report ->
-                def meta_new = meta.clone()
-                meta_new.classifier  = classifier
-                [ meta_new, report ]
-            }
-            .set { ch_tax_classifications }
-        KRONA (
-            ch_tax_classifications,
-            KRONA_DB.out.db.collect()
-        )
-     
-    }
-    
-    if ( params.kraken2_db && params.skip_centrifuge && !params.skip_kraken2 && !params.skip_krona) {     
-
-        KRAKEN2.out.results_for_krona
-            .map { classifier, meta, report ->
-                def meta_new = meta.clone()
-                meta_new.classifier  = classifier
-                [ meta_new, report ]
-            }
-            .set { ch_tax_classifications }
-        KRONA (
-            ch_tax_classifications,
-            KRONA_DB.out.db.collect()
-        )
-     
-    }
-    
-    
-*/
-
+    /*
+    ================================================================================
+           Prepare sequences from fastq files
+    ================================================================================
+    */    
 
     MERGEPAIRS(ch_paired_fastq)
     
@@ -367,7 +298,7 @@ workflow AIVSEEKER {
     EXTRACTSEQ_FIRST_ROUND(ch_diamond_output) 
     /*
     ================================================================================
-            BLAST search (First round)
+            BLAST search (Second round)
     ================================================================================
     */
 
@@ -444,46 +375,7 @@ workflow AIVSEEKER {
         SUM_TABLE_DEBLED(ch_input_for_sum_table_delbed)
         SUM_HEATMAP_DEBLED(SUM_TABLE_DEBLED.out.table)
     }
-    /*
-    ================================================================================
-           Pipeline reporting 
-    ================================================================================
-    */
-    /*
-    ch_versions
-        .map { it -> if (it) [ it.baseName, it ] }
-        .groupTuple()
-        .map { it[1][0] }
-        .flatten()
-        .collect()
-        .set { ch_versions }
-    
-    GET_SOFTWARE_VERSIONS (
-        ch_versions.map { it }.collect()
-    )
-    */
-
-    /*
-    ================================================================================
-           QC report
-    ================================================================================
-    */
-/*
-    ch_multiqc_files = Channel.empty()
-    ch_multiqc_files = ch_multiqc_files.mix(Channel.from(ch_multiqc_config))
-    ch_multiqc_files = ch_multiqc_files.mix(GET_SOFTWARE_VERSIONS.out.yaml.collect())
-    
-    MULTIQC (
-        ch_multiqc_files.collect(),
-        FASTQC_FASTP.out.fastqc_raw_zip.collect{it[1]}.ifEmpty([]),
-        FASTQC_FASTP.out.trim_json.collect{it[1]}.ifEmpty([]),
-        FASTQC_FASTP.out.fastqc_trim_zip.collect{it[1]}.ifEmpty([]),
-       
-    )
-    multiqc_report       = MULTIQC.out.report.toList()
-    ch_versions = ch_versions.mix(MULTIQC.out.version.ifEmpty(null))
-
-*/
+  
   
 }
 
