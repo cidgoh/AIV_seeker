@@ -5,7 +5,7 @@ options        = initOptions(params.options)
 
 process DIAMOND_BLASTX {
     tag "$meta.id"
-    label 'process_low'
+    label 'big_job'
 
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
